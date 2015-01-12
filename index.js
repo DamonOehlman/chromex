@@ -1,38 +1,35 @@
-var defaults = require('cog/defaults');
+var EventEmitter = require('eventemitter3');
 
-/**
-  # chromex
+module.exports = function(opts) {
+  var extension = new EventEmitter();
+  var manifest = (opts || {}).manifest;
 
-  This is a simple function to assist with the installation and version
-  detection for a chrome extension.
+  // get the name from the opts or manifest
+  var name = ((opts || {}).name || manifest.short_name || '').toLowerCase();
 
-**/
+  function handleRequest(request, sender, sendResponse) {
+    var target = (request.target || '*').toLowerCase();
 
-module.exports = function(opts, callback) {
-  if (typeof opts == 'function') {
-    callback = opts;
-    opts = {};
+    // if we don't have a command, then abort
+    if (! request.command) {
+      return;
+    }
+
+    // if this is a request that can be handled by this extension then process
+    if (target === '*' || (! name) || target === name) {
+      extension.emit(request.command, request.opts || {}, sendResponse);
+    }
   }
 
-  // initialise defaults
-  opts = defaults({}, opts, {
-    inlineInstall: true,
-
-    // this is the id of the eextension you wish to install if not available
-    // see detail for your installed extensions on the developer dashboard
-    // https://chrome.google.com/webstore/developer/dashboard
-    extension: '',
-
-    // an element reference or selector that must be "clicked" to trigger the install
-    // if the extension is already installed this element will have an
-    // "ext-installed" class added to it
-    installTrigger: '#ext-install-trigger',
-
-    // the class that will be applied to the install trigger if the item is installed
-    installedClass: 'ext-installed'
-  });
-
-  if (! opts.extension) {
-    return callback(new Error('Must specify an extension id in opts'));
+  function handleVersionRequest(opts, callback) {
+    console.log('handling version request');
   }
+
+  // handle version requests
+  extension.on('version', handleVersionRequest);
+
+  console.log('initializing extension: ', opts);
+  chrome.runtime.onMessage.addListener(handleRequest);
+
+  return extension;
 };
