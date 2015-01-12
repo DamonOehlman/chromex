@@ -1,12 +1,15 @@
 # chromex
 
-This is a simple function to assist with the installation and version
-detection for a chrome extension.
+This is a set of helpers for working with chrome extensions.
+
 
 [![NPM](https://nodei.co/npm/chromex.png)](https://nodei.co/npm/chromex/)
 
 
 
+## Usage
+
+To be completed.
 
 ## License(s)
 

@@ -4,14 +4,6 @@ var kgo = require('kgo');
 var cuid = require('cuid');
 var URL_INLINEINSTALL = 'https://developer.chrome.com/webstore/inline_installation?csw=1';
 
-/**
-  # chromex
-
-  This is a simple function to assist with the installation and version
-  detection for a chrome extension.
-
-**/
-
 module.exports = function(opts) {
   var app = typeof chrome != 'undefined' && chrome.app;
   var extension = {};

@@ -1,5 +1,15 @@
 var EventEmitter = require('eventemitter3');
 
+/**
+  # chromex
+
+  This is a set of helpers for working with chrome extensions.
+
+  ## Usage
+
+  To be completed.
+
+**/
 module.exports = function(opts) {
   var extension = new EventEmitter();
   var manifest = (opts || {}).manifest;
