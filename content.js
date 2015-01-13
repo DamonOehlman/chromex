@@ -7,7 +7,7 @@ module.exports = function(opts) {
     // if we have data and a target extension defined, then send it through
     if (data && data.target) {
       chrome.runtime.sendMessage(data, function(response) {
-        window.postMessage(extend(response, { src: 'extension' }, '*'));
+        window.postMessage(extend(response, { src: 'extension' }), '*');
       });
     }
   }

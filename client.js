@@ -34,12 +34,20 @@ module.exports = function(opts) {
   }
 
   function handleMessage(evt) {
-    var responseId = evt && evt.data && evt.data.responseId;
+    var data = evt && evt.data;
+    var responseId = data && data.responseId;
     var handler = responseId && pendingCallbacks[responseId];
 
     if (typeof handler == 'function') {
       pendingCallbacks[responseId] = null;
-      handler(null, evt.data);
+
+      // if we received an error trigger the error
+      if (data.error) {
+        console.log(data.error);
+        handler(new Error(data.error));
+      }
+
+      handler(null, data.payload);
     }
   }
 
