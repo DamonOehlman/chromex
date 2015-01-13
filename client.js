@@ -1,18 +1,24 @@
 var defaults = require('cog/defaults');
 var slimver = require('slimver');
+var EventEmitter = require('eventemitter3');
 var kgo = require('kgo');
 var cuid = require('cuid');
 var URL_INLINEINSTALL = 'https://developer.chrome.com/webstore/inline_installation?csw=1';
 
 module.exports = function(opts) {
-  var app = typeof chrome != 'undefined' && chrome.app;
-  var extension = {};
+  var extension = new EventEmitter();
   var pendingCallbacks = {};
 
   // create some of the function helpers
-  var getVersion = request('version');
+  var getVersion = sendCommand('version');
 
-  function checkAvailable(version, callback) {
+  function checkInstalled(callback) {
+    return sendCommand('installed', { timeout: 500 }, function(err) {
+      callback(err && new Error('extension not installed'));
+    });
+  }
+
+  function checkSatisfies(range, callback) {
     if (typeof version == 'function') {
       callback = version;
       version = null;
@@ -21,15 +27,18 @@ module.exports = function(opts) {
     kgo
     ('checkInstalled', checkInstalled)
     ('getVersion', getVersion)
-    ('checkAvailable', ['checkInstalled', 'getVersion'], function() {
+    ('checkAvailable', ['checkInstalled', 'getVersion'], function(installed, version) {
+      // normalise the version
+      version = normalizeVersion(version);
+
+      // check to see if the detected version satisfies the required version
+      if (! slimver.satisfies(version, range)) {
+        return callback(new Error('Currently installed extension version "' + version + '" does not meet range requirements: ' + range));
+      }
+
+      callback(null, version);
     })
     .on('error', callback);
-  }
-
-  function checkInstalled(callback) {
-    if (! app) {
-      return callback(new Error('Inline install required for extension detection, see ' + URL_INLINEINSTALL));
-    }
   }
 
   function handleMessage(evt) {
@@ -49,11 +58,33 @@ module.exports = function(opts) {
     }
   }
 
-  function request(command, requestOpts, callback) {
+  function normalizeVersion(version) {
+    var parts = version.split('.');
+    while (parts.length < 3) {
+      parts.push('0');
+    }
+
+    return parts.join('.');
+  }
+
+  function sendCommand(command, requestOpts, callback) {
     // create the request id
     var id = cuid();
 
     function exec(cb) {
+      var timeout = (requestOpts || {}).timeout;
+
+      function checkProcessed() {
+        if (pendingCallbacks[id]) {
+          pendingCallbacks[id] = undefined;
+          cb(new Error('command "' + command + '" timed out'));
+        }
+      }
+
+      if (timeout) {
+        setTimeout(checkProcessed, timeout);
+      }
+
       // regsiter the pending callback
       pendingCallbacks[id] = cb;
       window.postMessage({
@@ -66,32 +97,16 @@ module.exports = function(opts) {
 
     if (typeof requestOpts == 'function') {
       callback = requestOpts;
-      requestOpts = {};
+      requestOpts = undefined;
     }
 
     return callback ? exec(callback) : exec;
   }
 
-  // initialise defaults
-  opts = defaults({}, opts, {
-    inlineInstall: true,
-
-    // this is the id of the eextension you wish to install if not available
-    // see detail for your installed extensions on the developer dashboard
-    // https://chrome.google.com/webstore/developer/dashboard
-    id: '',
-
-    // an element reference or selector that must be "clicked" to trigger the install
-    // if the extension is already installed this element will have an
-    // "ext-installed" class added to it
-    installTrigger: '#ext-install-trigger',
-
-    // the class that will be applied to the install trigger if the item is installed
-    installedClass: 'ext-installed'
-  });
-
-  extension.available = checkAvailable;
+  extension.installed = checkInstalled;
+  extension.satisfies = checkSatisfies;
   extension.getVersion = getVersion;
+  extension.sendCommand = sendCommand;
 
   // listen for window messages just like everybody else
   window.addEventListener('message', handleMessage);
