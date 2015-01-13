@@ -9,6 +9,9 @@ module.exports = function(opts) {
   var extension = {};
   var pendingCallbacks = {};
 
+  // create some of the function helpers
+  var getVersion = request('version');
+
   function checkAvailable(version, callback) {
     if (typeof version == 'function') {
       callback = version;
@@ -29,10 +32,6 @@ module.exports = function(opts) {
     }
   }
 
-  function getVersion(callback) {
-    request('version', callback);
-  }
-
   function handleMessage(evt) {
     var data = evt && evt.data;
     var responseId = data && data.responseId;
@@ -43,8 +42,7 @@ module.exports = function(opts) {
 
       // if we received an error trigger the error
       if (data.error) {
-        console.log(data.error);
-        handler(new Error(data.error));
+        return handler(new Error(data.error));
       }
 
       handler(null, data.payload);
@@ -55,19 +53,23 @@ module.exports = function(opts) {
     // create the request id
     var id = cuid();
 
+    function exec(cb) {
+      // regsiter the pending callback
+      pendingCallbacks[id] = cb;
+      window.postMessage({
+        requestId: id,
+        target: (opts || {}).target,
+        command: command,
+        opts: requestOpts
+      }, '*');
+    }
+
     if (typeof requestOpts == 'function') {
       callback = requestOpts;
       requestOpts = {};
     }
 
-    // regsiter the pending callback
-    pendingCallbacks[id] = callback;
-    window.postMessage({
-      requestId: id,
-      target: (opts || {}).target,
-      command: command,
-      opts: requestOpts
-    }, '*');
+    return callback ? exec(callback) : exec;
   }
 
   // initialise defaults
