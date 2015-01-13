@@ -25,7 +25,7 @@ module.exports = function(opts) {
       if (err) {
         return sendResponse({
           responseId: requestId,
-          error: err
+          error: '' + err
         });
       }
 
