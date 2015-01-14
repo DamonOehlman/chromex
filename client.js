@@ -55,6 +55,9 @@ module.exports = function(opts) {
 
       handler(null, data.payload);
     }
+    else if (data.message) {
+      extension.emit(data.message, data);
+    }
   }
 
   function normalizeVersion(version) {
