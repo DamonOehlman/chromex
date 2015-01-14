@@ -3,7 +3,6 @@ var slimver = require('slimver');
 var EventEmitter = require('eventemitter3');
 var kgo = require('kgo');
 var cuid = require('cuid');
-var URL_INLINEINSTALL = 'https://developer.chrome.com/webstore/inline_installation?csw=1';
 
 module.exports = function(opts) {
   var extension = new EventEmitter();
