@@ -15,6 +15,10 @@
     }
   }
 
+  // trigger an install message so we can react if required
+  window.postMessage({ message: 'activate' }, '*');
+
+  // listen for local messages
   console.log('chromex message bridge initialized');
   window.addEventListener('message', handleMessage);
 })();
