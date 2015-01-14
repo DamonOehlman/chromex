@@ -17,10 +17,6 @@ module.exports = function(opts) {
   // get the name from the opts or manifest
   var name = ((opts || {}).name || manifest.short_name || '').toLowerCase();
 
-  function handleInstall(details) {
-    console.log('installed: ', details);
-  }
-
   function handleRequest(port) {
     return function(message) {
       var target = (message.target || '*').toLowerCase();
@@ -72,10 +68,6 @@ module.exports = function(opts) {
     console.log('connected', port);
     port.onMessage.addListener(handleRequest(port));
   });
-
-  // listen for install events
-  chrome.runtime.onInstalled.addListener(handleInstall);
-
 
   return extension;
 };
