@@ -1,4 +1,5 @@
 var EventEmitter = require('eventemitter3');
+var reURLPermission = /^[\w\*]+\:\/\//;
 
 /**
   # chromex
@@ -13,9 +14,16 @@ var EventEmitter = require('eventemitter3');
 module.exports = function(opts) {
   var extension = new EventEmitter();
   var manifest = (opts || {}).manifest || {};
+  var urlPatterns = extractUrlPatterns(manifest.permissions);
 
   // get the name from the opts or manifest
   var name = ((opts || {}).name || manifest.short_name || '').toLowerCase();
+
+  function extractUrlPatterns(permissions) {
+    return (permissions || []).filter(function(permission) {
+      return reURLPermission.test(permission);
+    });
+  }
 
   function handleRequest(port) {
     return function(message) {
@@ -59,6 +67,15 @@ module.exports = function(opts) {
     callback(null, version);
   }
 
+  function refreshExistingTabs(tabs) {
+    tabs.forEach(function(tab) {
+      chrome.tabs.executeScript(tab.id, {
+        file: 'scripts/message-bridge.js',
+        runAt: 'document_start'
+      });
+    });
+  }
+
   // handle version requests
   extension.on('version', handleVersionRequest);
   extension.on('installed', handleInstallCheck);
@@ -68,6 +85,13 @@ module.exports = function(opts) {
     console.log('connected', port);
     port.onMessage.addListener(handleRequest(port));
   });
+
+  if (urlPatterns.length > 0) {
+    chrome.tabs.query({
+      status: 'complete',
+      url: urlPatterns
+    }, refreshExistingTabs);
+  }
 
   return extension;
 };
