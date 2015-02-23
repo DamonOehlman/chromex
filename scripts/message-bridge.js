@@ -16,7 +16,9 @@
   }
 
   // trigger an install message so we can react if required
-  window.postMessage({ message: 'activate' }, '*');
+  setTimeout(function() {
+    window.postMessage({ message: 'activate' }, '*');
+  }, 10);
 
   // listen for local messages
   console.log('chromex message bridge initialized');
