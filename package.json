@@ -1,6 +1,6 @@
 {
   "name": "chromex",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Some helpful functions for working with chrome extensions",
   "main": "index.js",
   "scripts": {
