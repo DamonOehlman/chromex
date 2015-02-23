@@ -86,12 +86,12 @@ module.exports = function(opts) {
     port.onMessage.addListener(handleRequest(port));
   });
 
-  if (urlPatterns.length > 0) {
+  urlPatterns.forEach(function(pattern) {
     chrome.tabs.query({
       status: 'complete',
-      url: urlPatterns
+      url: pattern
     }, refreshExistingTabs);
-  }
+  });
 
   return extension;
 };
