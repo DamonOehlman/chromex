@@ -3,8 +3,10 @@ var slimver = require('slimver');
 var EventEmitter = require('eventemitter3');
 var kgo = require('kgo');
 var cuid = require('cuid');
+var tickInit = Date.now();
 
 module.exports = function(opts) {
+  var initDelay = (opts || {}).initDelay || 100;
   var extension = new EventEmitter();
   var pendingCallbacks = {};
 
@@ -60,6 +62,16 @@ module.exports = function(opts) {
     }
   }
 
+  function ready(callback) {
+    var diff = Date.now() - tickInit;
+
+    if (diff > initDelay) {
+      return callback()
+    }
+
+    return setTimeout(callback, initDelay - diff);
+  }
+
   function normalizeVersion(version) {
     var parts = version.split('.');
     while (parts.length < 3) {
@@ -83,18 +95,20 @@ module.exports = function(opts) {
         }
       }
 
-      if (timeout) {
-        setTimeout(checkProcessed, timeout);
-      }
+      ready(function() {
+        if (timeout) {
+          setTimeout(checkProcessed, timeout);
+        }
 
-      // regsiter the pending callback
-      pendingCallbacks[id] = cb;
-      window.postMessage({
-        requestId: id,
-        target: (opts || {}).target,
-        command: command,
-        opts: requestOpts
-      }, '*');
+        // regsiter the pending callback
+        pendingCallbacks[id] = cb;
+        window.postMessage({
+          requestId: id,
+          target: (opts || {}).target,
+          command: command,
+          opts: requestOpts
+        }, '*');
+      });
     }
 
     if (typeof requestOpts == 'function') {
