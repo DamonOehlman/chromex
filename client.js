@@ -20,9 +20,9 @@ module.exports = function(opts) {
   }
 
   function checkSatisfies(range, callback) {
-    if (typeof version == 'function') {
-      callback = version;
-      version = null;
+    if (typeof range == 'function') {
+      callback = range;
+      range = '*';
     }
 
     kgo
