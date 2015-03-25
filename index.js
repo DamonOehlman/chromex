@@ -6,9 +6,34 @@ var reURLPermission = /^[\w\*]+\:\/\//;
 
   This is a set of helpers for working with chrome extensions.
 
-  ## Usage
+  ## Example Usage
 
-  To be completed.
+  To run the example that is included in this repo, first install
+  browserify and beefy:
+
+  ```
+  npm install -g browserify beefy
+  ```
+
+  Then run `npm start` to run the example.
+
+  __NOTE:__  Because the example is attempting to use inline installation
+  to install the rtc.io screensharing extension (as an example) you will
+  need to set a host entry for `local.rtc.io` to point to `localhost`. This
+  is because inline installation is only allowed for specific domains on
+  any particular extension.
+
+  Once you have everything setup goto <http://local.rtc.io:9966> and take
+  the example for a spin. If you are interested in the code, it's shown
+  below:
+
+  JS:
+
+  <<< examples/detect-installed.js
+
+  HTML:
+
+  <<< examples/index.html
 
 **/
 module.exports = function(opts) {
