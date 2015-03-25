@@ -18,8 +18,6 @@ extension.installed(function(err) {
   if (err) {
     return actions.appendChild(installButton);
   }
-
-  informReady();
 });
 
 // on install show the capture button and remove the install button if active
