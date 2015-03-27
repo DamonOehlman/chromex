@@ -55,7 +55,14 @@ module.exports = function(opts) {
         return handler(new Error(data.error));
       }
 
-      handler(null, data.payload);
+      // if the extension component is sending us all the args, use them
+      if (data.args) {
+        handler.apply(null, [null].concat(data.args));
+      }
+      // otherwise, default to using the payload
+      else {
+        handler(null, data.payload);
+      }
     }
     else if (data.message) {
       extension.emit(data.message, data);

@@ -61,7 +61,11 @@ module.exports = function(opts) {
           return port.postMessage({ responseId: requestId, error: '' + err });
         }
 
-        port.postMessage({ responseId: requestId, payload: payload });
+        port.postMessage({
+          responseId: requestId,
+          payload: payload,
+          args: [].slice.call(arguments, 1)
+        });
       }
 
       // if we don't have a command, then abort
