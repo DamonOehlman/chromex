@@ -58,10 +58,7 @@ module.exports = function(opts) {
       function handleResponse(err, payload) {
         console.log('got response for request (' + requestId + '): ', arguments);
         if (err) {
-          return sendResponse({
-            responseId: requestId,
-            error: '' + err
-          });
+          return port.postMessage({ responseId: requestId, error: '' + err });
         }
 
         port.postMessage({ responseId: requestId, payload: payload });
