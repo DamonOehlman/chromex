@@ -56,7 +56,6 @@ module.exports = function(opts) {
       var requestId = message.requestId;
 
       function handleResponse(err, payload) {
-        console.log('got response for request (' + requestId + '): ', arguments);
         if (err) {
           return port.postMessage({ responseId: requestId, error: '' + err });
         }
@@ -72,6 +71,8 @@ module.exports = function(opts) {
       if (! message.command) {
         return;
       }
+      
+      console.log(target, name);
 
       // if this is a request that can be handled by this extension then process
       if (target === '*' || (! name) || target === name) {
