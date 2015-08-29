@@ -40,14 +40,33 @@ module.exports = function(opts) {
   var extension = new EventEmitter();
   var manifest = (opts || {}).manifest || {};
   var urlPatterns = extractUrlPatterns(manifest.permissions);
+  var connectedPorts = [];
 
   // get the name from the opts or manifest
   var name = ((opts || {}).name || manifest.short_name || '').toLowerCase();
+
+  function couplePort(port) {
+    port.onDisconnect.addListener(function() {
+      var portIndex = connectedPorts.indexOf(port);
+      if (portIndex >= 0) {
+        connectedPorts.splice(portIndex, 1);
+        console.log('no longer tracking port: ', port);
+      }
+    });
+
+    connectedPorts.push(port);
+    port.onMessage.addListener(handleRequest(port));
+    console.log('tracking port: ', port);
+  }
 
   function extractUrlPatterns(permissions) {
     return (permissions || []).filter(function(permission) {
       return reURLPermission.test(permission);
     });
+  }
+
+  function getUrlPermissions() {
+    return [].concat(urlPatterns);
   }
 
   function handleRequest(port) {
@@ -103,15 +122,25 @@ module.exports = function(opts) {
     });
   }
 
+  function send(message) {
+    var args = [].slice.call(arguments, 1);
+
+    console.log('attempting to send message: "' + message + '" to connected ports: ', connectedPorts);
+
+    connectedPorts.forEach(function(port) {
+      port.postMessage({
+        message: message,
+        args: args
+      });
+    });
+  }
+
   // handle version requests
   extension.on('version', handleVersionRequest);
   extension.on('installed', handleInstallCheck);
 
   console.log('initializing extension: ', opts);
-  chrome.runtime.onConnect.addListener(function(port) {
-    console.log('connected', port);
-    port.onMessage.addListener(handleRequest(port));
-  });
+  chrome.runtime.onConnect.addListener(couplePort);
 
   urlPatterns.forEach(function(pattern) {
     chrome.tabs.query({
@@ -119,6 +148,9 @@ module.exports = function(opts) {
       url: pattern
     }, refreshExistingTabs);
   });
+
+  extension.getUrlPermissions = getUrlPermissions;
+  extension.send = send;
 
   return extension;
 };

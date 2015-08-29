@@ -47,6 +47,8 @@ module.exports = function(opts) {
     var responseId = data && data.responseId;
     var handler = responseId && pendingCallbacks[responseId];
 
+    console.log('received message: ', evt);
+
     if (typeof handler == 'function') {
       pendingCallbacks[responseId] = null;
 
