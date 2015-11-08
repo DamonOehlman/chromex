@@ -28,18 +28,18 @@ module.exports = function(opts) {
     kgo
     ('checkInstalled', checkInstalled)
     ('getVersion', getVersion)
-    ('checkAvailable', ['checkInstalled', 'getVersion'], function(installed, version) {
+    ('checkAvailable', ['!checkInstalled', 'getVersion'], function(version, done) {
       // normalise the version
       version = normalizeVersion(version);
 
       // check to see if the detected version satisfies the required version
       if (! slimver.satisfies(version, range)) {
-        return callback(new Error('Currently installed extension version "' + version + '" does not meet range requirements: ' + range));
+        return done(new Error('Currently installed extension version "' + version + '" does not meet range requirements: ' + range));
       }
 
-      callback(null, version);
+      done(null, version);
     })
-    .on('error', callback);
+    (['*', 'checkAvailable', callback])
   }
 
   function handleMessage(evt) {
