@@ -39,7 +39,7 @@ module.exports = function(opts) {
 
       done(null, version);
     })
-    (['*', 'checkAvailable', callback])
+    (['*', 'checkAvailable'], callback)
   }
 
   function handleMessage(evt) {
