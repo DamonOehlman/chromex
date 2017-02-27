@@ -93,7 +93,7 @@ module.exports = function(opts) {
     // create the request id
     var id = cuid();
 
-    if (window.parent !== window && !allowFrame) return callback('Attempting to communicate with extension when in a frame - pass "allowFrame" to permit');
+    if (window.parent !== window && !allowFrame) return callback(new Error('Attempting to communicate with extension when in a frame - pass "allowFrame" to permit'));
 
     function exec(cb) {
       var timeout = (requestOpts || {}).timeout;
@@ -116,7 +116,7 @@ module.exports = function(opts) {
         // Determine the target window for the message
         // (if we are a frame, and operating in a frame is allowed, we need to pass it up)
         var target = (window.parent ? window.parent : window);
-        target['postMessage']({
+        target.postMessage({
           requestId: id,
           target: (opts || {}).target,
           command: command,
